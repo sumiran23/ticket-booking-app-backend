@@ -75,3 +75,33 @@ export const logout = async (
     next();
   }
 };
+
+export const refreshToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    const user = await authService.refreshToken(refreshToken);
+
+    const { refreshToken: newRefreshToken } = user;
+
+    res.cookie("refreshToken", newRefreshToken, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+      // secure: true,
+      // sameSite: "none",
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Token refreshed successfully",
+      data: user,
+    });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};

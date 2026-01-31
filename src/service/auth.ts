@@ -79,4 +79,46 @@ const login = async (
   };
 };
 
-export default { register, login };
+const refreshToken = async (
+  oldRefreshToken: string,
+): Promise<User & { accessToken: string; refreshToken: string }> => {
+  let decodedToken: jwt.JwtPayload | null = null;
+
+  try {
+    decodedToken = jwt.verify(
+      oldRefreshToken,
+      process.env.JWT_REFRESH_TOKEN_SECRET as string,
+    ) as jwt.JwtPayload;
+  } catch (error) {
+    throw new CustomError("Unauthorized", 401);
+  }
+
+  const tokenPayload = { id: decodedToken.id, email: decodedToken.email };
+
+  const user = await userRepository.findByEmail(tokenPayload.email);
+
+  if (!user) {
+    throw new CustomError("User not found", 404);
+  }
+
+  const newAccessToken = jwt.sign(
+    tokenPayload,
+    process.env.JWT_ACCESS_TOKEN_SECRET as string,
+    { expiresIn: "1h" },
+  );
+  const newRefreshToken = jwt.sign(
+    tokenPayload,
+    process.env.JWT_REFRESH_TOKEN_SECRET as string,
+    { expiresIn: "1d" },
+  );
+
+  delete user.password;
+
+  return {
+    ...user,
+    accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
+  };
+};
+
+export default { register, login, refreshToken };

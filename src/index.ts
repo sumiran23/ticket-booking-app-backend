@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 
 import pool from "./database/db";
 import eventRouter from "./router/eventRouter";
@@ -12,6 +13,7 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(cookieParser());
 app.use(express.json());
 app.use("/api/v1/events", eventRouter);
 app.use("/api/v1/auth", authRouter);

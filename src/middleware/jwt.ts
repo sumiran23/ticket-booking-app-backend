@@ -25,6 +25,10 @@ export const verifyJWT = async (
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  (req as CustomRequest).user = decodedToken.user;
+  (req as CustomRequest).user = {
+    userId: decodedToken.id,
+    email: decodedToken.email,
+  };
+
   next();
 };
