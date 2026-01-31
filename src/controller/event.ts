@@ -19,16 +19,17 @@ export const getAllEvents = async (
   }
 };
 
-export const getEvent = async (
+export const getEventById = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const events = await eventService.getAllEvents();
+    const { id } = req.params;
+    const event = await eventService.getEventById(Number(id));
     res.status(200).json({
       success: true,
-      data: events,
+      data: event,
       message: "Events fetched successfully",
     });
   } catch (error) {
