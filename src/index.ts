@@ -1,0 +1,36 @@
+import express from "express";
+import dotenv from "dotenv";
+
+import pool from "./database/db";
+import eventRouter from "./router/eventRouter";
+import errorHandlerMiddleware from "./middleware/errorHandler";
+import notFoundMiddleware from "./middleware/notFound";
+
+dotenv.config();
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.use("/api/v1/events", eventRouter);
+app.use(notFoundMiddleware);
+app.use(errorHandlerMiddleware);
+
+// app.get("/", (req, res) => {
+//   res.send("Hello World with TypeScript and Express!");
+// });
+
+// app.get("/db-status", async (req, res) => {
+//   try {
+//     const client = await pool.connect();
+//     await client.query("SELECT NOW()");
+//     client.release();
+//     res.status(200).send("Database connected successfully!");
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).send("Database connection failed.");
+//   }
+// });
+
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});
