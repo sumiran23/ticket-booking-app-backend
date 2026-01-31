@@ -1,5 +1,6 @@
 import bookingRepository from "../repository/booking";
 import CustomError from "../util/customError";
+import paymentService from "./payment";
 
 const reserveSeats = async (
   userId: number,
@@ -25,4 +26,42 @@ const reserveSeats = async (
   };
 };
 
-export default { reserveSeats };
+const confirmBooking = async (
+  userId: number,
+  eventId: number,
+  reservedSeatIds: number[],
+  cardDetails: {
+    cardNumber: string;
+    cvv: string;
+    expiry: string;
+    cardholder: string;
+  },
+) => {
+  const { status, total } =
+    await bookingRepository.verifyReservationAndCalculateTotal(
+      userId,
+      eventId,
+      reservedSeatIds,
+    );
+
+  if (status === "invalid") {
+    throw new CustomError(
+      "Some or all reserved seats are no longer valid for booking",
+      409,
+    );
+  }
+
+  // Mock payment process
+  await paymentService.processPayment(cardDetails, total);
+
+  const bookingConfirmation = await bookingRepository.confirmBooking(
+    userId,
+    eventId,
+    reservedSeatIds,
+    total,
+  );
+
+  return bookingConfirmation;
+};
+
+export default { reserveSeats, confirmBooking };

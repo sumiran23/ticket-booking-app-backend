@@ -45,4 +45,97 @@ const reserveSeats = async (
   }
 };
 
-export default { reserveSeats };
+const verifyReservationAndCalculateTotal = async (
+  userId: number,
+  eventId: number,
+  reservedSeatIds: number[],
+): Promise<{ status: string; total: number }> => {
+  const reservationVerification = await pool.query(
+    `SELECT 
+         ts.id,
+         ts.seat_id,
+         ts.user_id,
+         ts.status,
+         ts.held_until,
+         s.price,
+         s.seat_number
+       FROM ticketstatus ts
+       JOIN seats s ON ts.seat_id = s.id
+       WHERE ts.seat_id = ANY($1::int[])
+         AND ts.event_id = $2
+         AND ts.user_id = $3
+         AND ts.status = 'reserved'
+         AND ts.held_until > NOW()`,
+    [reservedSeatIds, eventId, userId],
+  );
+
+  // If the reservation status of any of the ticket has changed, return false
+  if (reservationVerification.rows.length !== reservedSeatIds.length) {
+    return {
+      status: "invalid",
+      total: 0,
+    };
+  }
+
+  const totalPrice = reservationVerification.rows.reduce(
+    (sum, row) => sum + parseFloat(row.price),
+    0,
+  );
+
+  return {
+    status: "valid",
+    total: totalPrice,
+  };
+};
+
+const confirmBooking = async (
+  userId: number,
+  eventId: number,
+  reservedSeatIds: number[],
+  totalPrice: number,
+): Promise<any> => {
+  try {
+    await pool.query("BEGIN");
+
+    await pool.query(
+      `UPDATE ticketstatus
+       SET status = 'booked',
+           held_until = NULL
+       WHERE seat_id = ANY($1::int[])
+         AND event_id = $2
+         AND user_id = $3
+         AND status = 'reserved'
+         AND held_until > NOW()
+       RETURNING id, seat_id`,
+      [reservedSeatIds, eventId, userId],
+    );
+
+    const confirmationResult = await pool.query(
+      `INSERT INTO booking_confirmations (event_id, user_id, total_price)
+       VALUES ($1, $2, $3)
+       RETURNING id`,
+      [eventId, userId, totalPrice],
+    );
+
+    const bookingConfirmation = confirmationResult.rows[0];
+
+    await pool.query(
+      `INSERT INTO booking_confirmation_seats (booking_confirmation_id, seat_id)
+       SELECT $1, seat_id
+       FROM unnest($2::int[]) AS seat_id`,
+      [bookingConfirmation.id, reservedSeatIds],
+    );
+
+    await pool.query("COMMIT");
+
+    return { bookingConfirmation };
+  } catch (error) {
+    await pool.query("ROLLBACK");
+    throw error;
+  }
+};
+export default {
+  reserveSeats,
+  verifyReservationAndCalculateTotal,
+  confirmBooking,
+};
