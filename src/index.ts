@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import pool from "./database/db";
 import eventRouter from "./router/eventRouter";
 import authRouter from "./router/authRouter";
+import bookingRouter from "./router/bookingRouter";
 import errorHandlerMiddleware from "./middleware/errorHandler";
 import notFoundMiddleware from "./middleware/notFound";
 
@@ -17,6 +18,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use("/api/v1/events", eventRouter);
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/booking", bookingRouter);
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
