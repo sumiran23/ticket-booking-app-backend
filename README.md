@@ -168,3 +168,15 @@ try {
 - The `WHERE` clause performs the availability check **atomically** with the update
 - PostgreSQL's row-level locking ensures only one `UPDATE` succeeds
 - If fewer rows are returned than requested, some seats were unavailable. Then we rollback the transaction and return the error message to the user.
+
+#### 2. Availability, Reliability and Scalability
+
+**Trade-off: Availability vs Consistency**
+
+In a ticket booking application, there is a trade-off between availability and consistency. As we make the ticket booking process reliable and consistent (prevent double booking), the availability of the system is compromised in a way as many users get error response or are blocked during bookings of peak or in-demand events.
+
+**Production Architecture**
+
+Below is a sample architecture diagram of how the system would look in a production environment:
+
+![System Architecture](Ticket Booking App architecture.png)
