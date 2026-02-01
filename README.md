@@ -179,4 +179,4 @@ In a ticket booking application, there is a trade-off between availability and c
 
 Below is a sample architecture diagram of how the system would look in a production environment:
 
-![System Architecture](Ticket Booking App architecture.png)
+![System Architecture](<Ticket Booking App architecture.png>)
