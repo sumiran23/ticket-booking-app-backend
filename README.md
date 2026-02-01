@@ -354,10 +354,13 @@ We will have 3 microservices in production:
 
 There will be an API gateway as an entry point in the backend system. It will handle authentication and authorization, rate limiting, routing etc. All the microservices will be vertically scaled based on demand using AWS services like load balancers and auto scaling groups. The instances will be deployed across multiple availability zones and regions for high availablity and fault tolerance.
 
-2. We will use CDN network so that static assets are delivered quickly to the clients from their nearest CDN servers.
-3. We will use elastic search database for fast and efficient searching.
-4. We will use postgres database for storing our transactional data.
-5. Distributed Locking using Redis
+###### 2. We will use CDN network so that static assets are delivered quickly to the clients from their nearest CDN servers.
+
+###### 3. We will use elastic search database for fast and efficient searching.
+
+###### 4. We will use postgres database for storing our transactional data.
+
+###### 5. Distributed Locking using Redis
 
 To prevent double booking in high-traffic scenarios, we implement a hybrid approach combining Redis distributed locks with PostgreSQL's ACID transaction guarantees. This architecture provides defense-in-depth by operating at two levels:
 
