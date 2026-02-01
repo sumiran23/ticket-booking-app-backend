@@ -63,3 +63,62 @@ npm run dev
 ---
 
 > ✅ Your API server is now running!
+
+### Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    users ||--o{ ticketstatus : "reserves/books"
+    users ||--o{ booking_confirmations : "makes"
+    events ||--o{ seats : "has"
+    events ||--o{ ticketstatus : "for"
+    events ||--o{ booking_confirmations : "for"
+    seats ||--|| ticketstatus : "tracked_in"
+    booking_confirmations ||--o{ booking_confirmation_seats : "contains"
+    seats ||--o{ booking_confirmation_seats : "included_in"
+
+    users {
+        int id PK
+        string email UK
+        string password
+    }
+
+    events {
+        int id PK
+        string title
+        text description
+        string thumbnail
+        string venue
+        timestamp eventdatetime
+    }
+
+    seats {
+        int id PK
+        int event_id FK
+        string seat_number
+        string type
+        decimal price
+    }
+
+    ticketstatus {
+        int id PK
+        int event_id FK
+        int seat_id FK "UK with event_id"
+        int user_id FK "nullable"
+        string status "available, reserved, booked"
+        timestamp held_until "nullable"
+    }
+
+    booking_confirmations {
+        int id PK
+        int event_id FK
+        int user_id FK
+        decimal total_price
+    }
+
+    booking_confirmation_seats {
+        int id PK
+        int booking_confirmation_id FK
+        int seat_id FK "UK with booking_confirmation_id"
+    }
+```
