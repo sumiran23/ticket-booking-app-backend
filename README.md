@@ -37,3 +37,29 @@ Run the `data-seed.sql` file to populate the database with sample data for testi
 ---
 
 > ✅ Your database is now ready to use!
+
+### 🔧 API Setup
+
+#### Step 1: Install Dependencies
+
+Install the required packages using npm:
+
+```bash
+npm install
+```
+
+#### Step 2: Configure Environment Variables
+
+Refer to the `.env.example` file and create a `.env` file with all the necessary environment variables.
+
+#### Step 3: Start the Development Server
+
+Run the following command to start the API server:
+
+```bash
+npm run dev
+```
+
+---
+
+> ✅ Your API server is now running!
