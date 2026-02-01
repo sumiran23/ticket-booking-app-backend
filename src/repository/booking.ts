@@ -26,7 +26,10 @@ const reserveSeats = async (
            held_until = NOW() + INTERVAL '10 minutes'
        WHERE seat_id = ANY($2::int[])
          AND event_id = $3
-         AND status = 'available'
+         AND (
+            status = 'available'
+            OR (status = 'reserved' AND held_until <= NOW())
+        )
        RETURNING id, seat_id`,
       [userId, seatIds, eventId],
     );
@@ -128,7 +131,7 @@ const confirmBooking = async (
 
     await pool.query("COMMIT");
 
-    return { bookingConfirmation };
+    return bookingConfirmation;
   } catch (error) {
     await pool.query("ROLLBACK");
     throw error;

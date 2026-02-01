@@ -20,6 +20,9 @@ const reserveSeats = async (
     );
   }
 
+  // Add a delay of 3 seconds to simulate real-world processing time
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
   return {
     eventId,
     reservedSeatIds: reservedSeats,
