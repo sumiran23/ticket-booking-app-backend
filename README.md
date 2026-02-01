@@ -122,3 +122,49 @@ erDiagram
         int seat_id FK "UK with booking_confirmation_id"
     }
 ```
+
+### 🏗️ Architecture Decisions
+
+#### 1. Concurrency Control and Prevent Double Booking
+
+**Problem:** Without proper handling, two users could book the same seat.
+
+**Solution: Atomic Operations**
+
+```javascript
+await pool.query("BEGIN");
+
+try {
+  const result = await pool.query(
+    `UPDATE ticketstatus
+         SET status = 'reserved',
+             user_id = $1,
+             held_until = NOW() + INTERVAL '10 minutes'
+         WHERE seat_id = ANY($2::int[])
+           AND event_id = $3
+           AND (
+              status = 'available'
+              OR (status = 'reserved' AND held_until <= NOW())
+          )
+         RETURNING id, seat_id`,
+    [userId, seatIds, eventId],
+  );
+
+  if (result.rows.length !== seatIds.length) {
+    await pool.query("ROLLBACK");
+    return [];
+  }
+
+  await pool.query("COMMIT");
+  return seatIds;
+} catch (error) {
+  await pool.query("ROLLBACK");
+  throw error;
+}
+```
+
+**Key Points:**
+
+- The `WHERE` clause performs the availability check **atomically** with the update
+- PostgreSQL's row-level locking ensures only one `UPDATE` succeeds
+- If fewer rows are returned than requested, some seats were unavailable. Then we rollback the transaction and return the error message to the user.
